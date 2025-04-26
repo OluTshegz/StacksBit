@@ -44,3 +44,66 @@ Clarinet.test({
     assertEquals(result.result.expectOk().expectBool(), false);
   }
 });
+
+Clarinet.test({
+  name: "BTC Verification: should verify a valid transaction ID",
+  async fn(chain: Chain, accounts: Map<string, Account>) {
+    const deployer = accounts.get("deployer")!;
+    const txId = "valid-tx-id";
+
+    // Simulate a valid BTC transaction
+    const result = chain.callReadOnlyFn(
+      "marketplace-btc-verification",
+      "is-tx-verified",
+      [
+        types.buff(txId),
+      ],
+      deployer.address
+    );
+
+    // Expect the transaction to be verified (true)
+    assertEquals(result.result.expectOk().expectBool(), true);
+  }
+});
+
+Clarinet.test({
+  name: "BTC Verification: should return an error for an invalid transaction ID",
+  async fn(chain: Chain, accounts: Map<string, Account>) {
+    const deployer = accounts.get("deployer")!;
+    const txId = "invalid-tx-id";
+
+    // Simulate an invalid BTC transaction
+    const result = chain.callReadOnlyFn(
+      "marketplace-btc-verification",
+      "is-tx-verified",
+      [
+        types.buff(txId),
+      ],
+      deployer.address
+    );
+
+    // Expect the transaction to be unverified (false)
+    assertEquals(result.result.expectOk().expectBool(), false);
+  }
+});
+
+Clarinet.test({
+  name: "BTC Verification: should handle unexpected errors gracefully",
+  async fn(chain: Chain, accounts: Map<string, Account>) {
+    const deployer = accounts.get("deployer")!;
+    const txId = "";
+
+    // Simulate an invalid input
+    const result = chain.callReadOnlyFn(
+      "marketplace-btc-verification",
+      "is-tx-verified",
+      [
+        types.buff(txId),
+      ],
+      deployer.address
+    );
+
+    // Expect an error to be returned
+    assertEquals(result.result.isErr(), true);
+  }
+});

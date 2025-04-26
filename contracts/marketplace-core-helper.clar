@@ -5,6 +5,16 @@
 (define-constant ERR-NOT-AUTHORIZED (err u1))
 (define-constant ERR-NO-SUCH-LISTING (err u5))
 
+(define-event event-listing-status-updated (listing-id uint new-status (string-ascii 20)))
+
+(define-public (update-listing-status (listing-id uint) (new-status (string-ascii 20)))
+  (let ((listing (unwrap! (map-get? listings listing-id) (err u1))))
+    (map-set listings listing-id {listing | status: new-status})
+    (emit-event event-listing-status-updated listing-id new-status)
+    (ok true)
+  )
+)
+
 ;; Update listing status (helper function for other contracts)
 (define-public (update-listing-status
     (listing-id uint)

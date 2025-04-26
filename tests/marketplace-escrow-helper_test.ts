@@ -46,3 +46,66 @@ Clarinet.test({
     assertEquals(result.result.expectOk().expectBool(), true);
   }
 });
+
+Clarinet.test({
+  name: "should successfully update escrow status",
+  async fn(chain: Chain, accounts: Map<string, Account>) {
+    const deployer = accounts.get("deployer")!;
+    const listingId = 1;
+    const newStatus = "completed";
+
+    const result = chain.callReadOnlyFn(
+      "marketplace-escrow-helper",
+      "update-escrow-status",
+      [
+        types.uint(listingId),
+        types.ascii(newStatus),
+      ],
+      deployer.address
+    );
+
+    assertEquals(result.result.expectOk().expectBool(), true);
+  }
+});
+
+Clarinet.test({
+  name: "should throw error if escrow is already refunded",
+  async fn(chain: Chain, accounts: Map<string, Account>) {
+    const deployer = accounts.get("deployer")!;
+    const listingId = 1;
+    const newStatus = "refunded";
+
+    const result = chain.callReadOnlyFn(
+      "marketplace-escrow-helper",
+      "update-escrow-status",
+      [
+        types.uint(listingId),
+        types.ascii(newStatus),
+      ],
+      deployer.address
+    );
+
+    assertEquals(result.result.expectErr().expectAscii(), "Escrow already refunded");
+  }
+});
+
+Clarinet.test({
+  name: "should throw error if caller is unauthorized",
+  async fn(chain: Chain, accounts: Map<string, Account>) {
+    const unauthorizedUser = accounts.get("wallet_1")!;
+    const listingId = 1;
+    const newStatus = "disputed";
+
+    const result = chain.callReadOnlyFn(
+      "marketplace-escrow-helper",
+      "update-escrow-status",
+      [
+        types.uint(listingId),
+        types.ascii(newStatus),
+      ],
+      unauthorizedUser.address
+    );
+
+    assertEquals(result.result.expectErr().expectAscii(), "Unauthorized");
+  }
+});

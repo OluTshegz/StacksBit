@@ -8,6 +8,22 @@
 (define-constant ERR-DISPUTE-EXISTS (err u7))
 (define-constant ERR-BTC-TX-UNVERIFIED (err u8))
 
+(define-event event-escrow-status-updated (listing-id uint new-status (string-ascii 20)))
+
+(define-public (update-escrow-status (listing-id uint) (status (string-ascii 20)))
+  (let ((escrow (unwrap! (map-get? escrows listing-id) (err u5))))
+    (map-set escrows listing-id {escrow | status: status})
+    (emit-event event-escrow-status-updated listing-id status)
+    (ok true)
+  )
+)
+
+;; Example: Adding a helper for checking escrow status
+(define-public (get-escrow-status (listing-id uint))
+  (let ((escrow (unwrap! (map-get? escrows listing-id) (err u5))))
+    (ok (get status escrow)))
+)
+
 ;; Escrow for active trades
 (define-map escrows uint {
     buyer: principal,

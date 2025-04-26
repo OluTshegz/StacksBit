@@ -7,6 +7,22 @@
 (define-constant ERR-INVALID-PROOF (err u10))
 (define-constant ERR-AMOUNT-MISMATCH (err u11))
 (define-constant ERR-RECIPIENT-MISMATCH (err u12))
+(define-constant ERR-BTC-TX-UNVERIFIED (err u8))
+
+;; Log transaction verification events
+(define-event event-tx-verified (tx-id (buff 32)))
+(define-event event-tx-unverified (tx-id (buff 32)))
+
+(define-public (is-tx-verified (tx-id (buff 32)))
+  (let ((is-verified (check-tx-verification tx-id)))  ;; Assuming there's a check function
+    (if is-verified
+        (begin
+          (emit-event event-tx-verified tx-id)
+          (ok true))
+        (begin
+          (emit-event event-tx-unverified tx-id)
+          (err ERR-BTC-TX-UNVERIFIED))))
+)
 
 ;; BTC transaction verification
 (define-map verified-btc-txs (buff 32) {
