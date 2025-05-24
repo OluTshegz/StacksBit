@@ -74,3 +74,46 @@ Clarinet.test({
     assertEquals(result.result.expectOk().expectBool(), true);
   }
 });
+
+Clarinet.test({
+  name: "Core Marketplace Functions",
+  async fn(chain: Chain, accounts: Map<string, Account>) {
+    const deployer = accounts.get("deployer")!;
+    
+    // Test creating a new listing
+    let block = chain.mineBlock([
+      Tx.contractCall(
+        "marketplace-core",
+        "create-listing",
+        [
+          types.uint(mockListing.listingId),
+          types.principal(mockListing.seller),
+          types.uint(mockListing.stxAmount),
+          types.uint(mockListing.btcAmount),
+          types.uint(mockListing.expiresAt),
+        ],
+        deployer.address
+      )
+    ]);
+    block.receipts[0].result.expectOk().expectBool(true);
+
+    // Test fetching a non-existent listing
+    const nonExistentListing = chain.callReadOnlyFn(
+      "marketplace-core",
+      "get-listing",
+      [types.uint(9999)],
+      deployer.address
+    );
+    nonExistentListing.result.expectErr().expectUint(404); // Assuming 404 is the error code for "not found"
+
+    // Test expired listing (assuming expiration logic is implemented)
+    chain.mineEmptyBlockUntil(mockListing.expiresAt + 1);
+    const expiredListing = chain.callReadOnlyFn(
+      "marketplace-core",
+      "get-listing",
+      [types.uint(mockListing.listingId)],
+      deployer.address
+    );
+    expiredListing.result.expectErr().expectUint(410); // Assuming 410 is the error code for "expired"
+  }
+});

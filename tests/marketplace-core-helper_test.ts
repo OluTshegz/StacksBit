@@ -23,3 +23,45 @@ Clarinet.test({
     assertEquals(result.result.expectOk().expectBool(), true);
   }
 });
+
+Clarinet.test({
+  name: "Helper Functions for Listing Status - successfully update listing status",
+  async fn(chain: Chain, accounts: Map<string, Account>) {
+    const deployer = accounts.get("deployer")!;
+    const listingId = 1;
+    const newStatus = false; // Inactive status
+
+    const result = chain.callReadOnlyFn(
+      "marketplace-core-helper",
+      "update-listing-status",
+      [
+        types.uint(listingId),
+        types.bool(newStatus)
+      ],
+      deployer.address
+    );
+
+    assertEquals(result.result.expectOk().expectBool(), true);
+  }
+});
+
+Clarinet.test({
+  name: "Helper Functions for Listing Status - throw error for unauthorized status update",
+  async fn(chain: Chain, accounts: Map<string, Account>) {
+    const unauthorizedUser = accounts.get("wallet_1")!;
+    const listingId = 1;
+    const newStatus = false; // Inactive status
+
+    const result = chain.callReadOnlyFn(
+      "marketplace-core-helper",
+      "update-listing-status",
+      [
+        types.uint(listingId),
+        types.bool(newStatus)
+      ],
+      unauthorizedUser.address
+    );
+
+    assertEquals(result.result.expectErr(), "Unauthorized");
+  }
+});

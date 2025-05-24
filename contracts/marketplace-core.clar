@@ -13,6 +13,33 @@
 (define-data-var platform-fee-percent uint u100) ;; 1% in basis points
 (define-data-var platform-wallet principal tx-sender)
 
+(define-event event-listing-created (listing-id uint))
+(define-event event-listing-updated (listing-id uint))
+(define-event event-listing-closed (listing-id uint))
+
+(define-public (create-listing 
+    (title (string-ascii 100))
+    (price-btc uint))
+    (let ((listing-id (get-next-id))) ;; Assuming there's a way to get unique IDs
+        (map-set listings listing-id {
+            title: title,
+            price-btc: price-btc,
+            seller: tx-sender,
+            status: "active"
+        })
+        (emit-event event-listing-created listing-id)
+        (ok listing-id)
+    )
+)
+
+(define-public (close-listing (listing-id uint))
+    (let ((listing (unwrap! (map-get? listings listing-id) (err u1))))
+        (map-set listings listing-id {listing | status: "closed"})
+        (emit-event event-listing-closed listing-id)
+        (ok true)
+    )
+)
+
 ;; Define the listing data structure
 (define-map listings uint {
     seller: principal,

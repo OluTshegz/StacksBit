@@ -5,6 +5,12 @@
 (define-constant SATOSHIS-PER-BTC u100000000)  ;; 10^8 satoshis in 1 BTC
 (define-constant BASIS-POINTS-DENOMINATOR u10000)  ;; 10000 basis points = 100%
 
+(define-read-only (format-btc-amount (satoshis uint))
+    ;; Ensure that the frontend handles formatting correctly.
+    ;; Here, we return satoshis to be formatted on the frontend.
+    satoshis
+)
+
 ;; Utility functions for calculations
 (define-read-only (calculate-stx-required 
     (price-per-btc uint) 
